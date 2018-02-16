@@ -14,88 +14,103 @@ $rootPath = realpath( __DIR__ . '/..' );
  */
 require_once( $rootPath . '/vendor/autoload.php' );
 
-/*
- * Fetch .env
- */
-if ( ! isset( $_ENV['PANTHEON_ENVIRONMENT'] ) && file_exists( $rootPath . '/.env' ) ) {
-	$dotenv = new Dotenv\Dotenv( $rootPath );
-	$dotenv->load();
-	$dotenv->required( array(
-		'DB_NAME',
-		'DB_USER',
-		'DB_HOST',
-	) )->notEmpty();
-}
 
 /**
- * Disallow on server file edits
+ * Local configuration information.
+ *
+ * If you are working in a local/desktop development environment and want to
+ * keep your config separate, we recommend using a 'wp-config-local.php' file,
+ * which you should also make sure you .gitignore.
  */
-define( 'DISALLOW_FILE_EDIT', true );
-define( 'DISALLOW_FILE_MODS', true );
+if (file_exists(dirname(__FILE__) . '/wp-config-local.php') && !isset($_ENV['PANTHEON_ENVIRONMENT'])):
+  # IMPORTANT: ensure your local config does not include wp-settings.php
+  require_once(dirname(__FILE__) . '/wp-config-local.php');
 
 /**
- * Force SSL
+ * Pantheon platform settings. Everything you need should already be set.
  */
-define( 'FORCE_SSL_ADMIN', true );
+else:
 
-/**
- * Limit post revisions
- */
-define( 'WP_POST_REVISIONS', 3 );
-
-/*
- * If NOT on Pantheon
- */
-if ( ! isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ):
-	/**
-	 * Define site and home URLs
-	 */
-	// HTTP is still the default scheme for now.
-	$scheme = 'http';
-	// If we have detected that the end use is HTTPS, make sure we pass that
-	// through here, so <img> tags and the like don't generate mixed-mode
-	// content warnings.
-	if ( isset( $_SERVER['HTTP_USER_AGENT_HTTPS'] ) && $_SERVER['HTTP_USER_AGENT_HTTPS'] == 'ON' ) {
-		$scheme = 'https';
+	if ( ! isset( $_ENV['PANTHEON_ENVIRONMENT'] ) && file_exists( $rootPath . '/.env' ) ) {
+		$dotenv = new Dotenv\Dotenv( $rootPath );
+		$dotenv->load();
+		$dotenv->required( array(
+			'DB_NAME',
+			'DB_USER',
+			'DB_HOST',
+		) )->notEmpty();
 	}
-	$site_url = getenv( 'WP_HOME' ) !== false ? getenv( 'WP_HOME' ) : $scheme . '://' . $_SERVER['HTTP_HOST'] . '/';
-	define( 'WP_HOME', $site_url );
-	define( 'WP_SITEURL', $site_url . 'wp/' );
 
 	/**
-	 * Set Database Details
+	 * Disallow on server file edits
 	 */
-	define( 'DB_NAME', getenv( 'DB_NAME' ) );
-	define( 'DB_USER', getenv( 'DB_USER' ) );
-	define( 'DB_PASSWORD', getenv( 'DB_PASSWORD' ) !== false ? getenv( 'DB_PASSWORD' ) : '' );
-	define( 'DB_HOST', getenv( 'DB_HOST' ) );
+	define( 'DISALLOW_FILE_EDIT', true );
+	define( 'DISALLOW_FILE_MODS', true );
 
 	/**
-	 * Set debug modes
+	 * Force SSL
 	 */
-	define( 'WP_DEBUG', getenv( 'WP_DEBUG' ) === 'true' ? true : false );
-	define( 'IS_LOCAL', getenv( 'IS_LOCAL' ) !== false ? true : false );
+	define( 'FORCE_SSL_ADMIN', true );
 
-	/**#@+
-	 * Authentication Unique Keys and Salts.
-	 *
-	 * Change these to different unique phrases!
-	 * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
-	 * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
-	 *
-	 * @since 2.6.0
+	/**
+	 * Limit post revisions
 	 */
-	define( 'AUTH_KEY', '^J/U[^{cOJxhcmmCq2MX%nUs}i_^7nm[w+VsetLZ[JXW9Un/IiyWVEXk;s}X=?u$' );
-	define( 'SECURE_AUTH_KEY', 'dT,wlW20L5V3ChmTEHFGVtUE-r&A)y+G%Pnql&eKdVAWvdIr9FO4lh_Gc9ZVn!1|' );
-	define( 'LOGGED_IN_KEY', '{0E{}k_e7!XRt*}h}nuMP[sKn$gb(O@|[>?bUs}B{>:|+|lL%czE/!Tlc Uk53#:' );
-	define( 'NONCE_KEY', '|M9$H1t9D@AR6>JM[]?9RoA^dmOCHt6ldAE%x|0 Iqpi+m32>1>?0*_?*#|6f7|W' );
-	define( 'AUTH_SALT', 'CA-BmAsS|o_P|!I8Wfu%a=qXC;!3p[8]W_:N2{oI]HhpLP(%2]zWLH+aHTHDw9>%' );
-	define( 'SECURE_AUTH_SALT', 'pi-EA,AOXk*U[VZ|t]R;@K<WMcbD)>k* ;8+hKX:A|$.Z@HL@0`SE?W0:-?-IRd!' );
-	define( 'LOGGED_IN_SALT', 'e+6%u)u@RZn-$}_Q[N;Na<|A-[Am_$#nhD~}ci:%R&B*oiq<sPF$v)d1r<-V-5W|' );
-	define( 'NONCE_SALT', 'r%oyx_`[A-~<LB)]I.,^//}/&]a)H|fzk3IUWrZn[L4qf#Pp#lsB-B}+/ai&u,/|' );
+	define( 'WP_POST_REVISIONS', 3 );
 
-endif;
+	/*
+	 * If NOT on Pantheon
+	 */
+	if ( ! isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ):
+		/**
+		 * Define site and home URLs
+		 */
+		// HTTP is still the default scheme for now.
+		$scheme = 'http';
+		// If we have detected that the end use is HTTPS, make sure we pass that
+		// through here, so <img> tags and the like don't generate mixed-mode
+		// content warnings.
+		if ( isset( $_SERVER['HTTP_USER_AGENT_HTTPS'] ) && $_SERVER['HTTP_USER_AGENT_HTTPS'] == 'ON' ) {
+			$scheme = 'https';
+		}
+		$site_url = getenv( 'WP_HOME' ) !== false ? getenv( 'WP_HOME' ) : $scheme . '://' . $_SERVER['HTTP_HOST'] . '/';
+		define( 'WP_HOME', $site_url );
+		define( 'WP_SITEURL', $site_url . 'wp/' );
 
+		/**
+		 * Set Database Details
+		 */
+		define( 'DB_NAME', getenv( 'DB_NAME' ) );
+		define( 'DB_USER', getenv( 'DB_USER' ) );
+		define( 'DB_PASSWORD', getenv( 'DB_PASSWORD' ) !== false ? getenv( 'DB_PASSWORD' ) : '' );
+		define( 'DB_HOST', getenv( 'DB_HOST' ) );
+
+		/**
+		 * Set debug modes
+		 */
+		define( 'WP_DEBUG', getenv( 'WP_DEBUG' ) === 'true' ? true : false );
+		define( 'IS_LOCAL', getenv( 'IS_LOCAL' ) !== false ? true : false );
+
+		/**#@+
+		 * Authentication Unique Keys and Salts.
+		 *
+		 * Change these to different unique phrases!
+		 * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
+		 * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
+		 *
+		 * @since 2.6.0
+		 */
+		define( 'AUTH_KEY', '^J/U[^{cOJxhcmmCq2MX%nUs}i_^7nm[w+VsetLZ[JXW9Un/IiyWVEXk;s}X=?u$' );
+		define( 'SECURE_AUTH_KEY', 'dT,wlW20L5V3ChmTEHFGVtUE-r&A)y+G%Pnql&eKdVAWvdIr9FO4lh_Gc9ZVn!1|' );
+		define( 'LOGGED_IN_KEY', '{0E{}k_e7!XRt*}h}nuMP[sKn$gb(O@|[>?bUs}B{>:|+|lL%czE/!Tlc Uk53#:' );
+		define( 'NONCE_KEY', '|M9$H1t9D@AR6>JM[]?9RoA^dmOCHt6ldAE%x|0 Iqpi+m32>1>?0*_?*#|6f7|W' );
+		define( 'AUTH_SALT', 'CA-BmAsS|o_P|!I8Wfu%a=qXC;!3p[8]W_:N2{oI]HhpLP(%2]zWLH+aHTHDw9>%' );
+		define( 'SECURE_AUTH_SALT', 'pi-EA,AOXk*U[VZ|t]R;@K<WMcbD)>k* ;8+hKX:A|$.Z@HL@0`SE?W0:-?-IRd!' );
+		define( 'LOGGED_IN_SALT', 'e+6%u)u@RZn-$}_Q[N;Na<|A-[Am_$#nhD~}ci:%R&B*oiq<sPF$v)d1r<-V-5W|' );
+		define( 'NONCE_SALT', 'r%oyx_`[A-~<LB)]I.,^//}/&]a)H|fzk3IUWrZn[L4qf#Pp#lsB-B}+/ai&u,/|' );
+
+		endif;
+
+	endif;
 /*
  * If on Pantheon
  */
